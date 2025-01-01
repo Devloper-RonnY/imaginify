@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans} from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { ClerkProvider, SignIn, UserButton} from "@clerk/nextjs";
-import SignInPage from "./(auth)/sign-in/[[...sign-in]]/page";
+import { ClerkProvider} from "@clerk/nextjs";
 import Layout from "./(auth)/layout";
 
 const IBMPlex = IBM_Plex_Sans({
@@ -30,8 +29,6 @@ export default function RootLayout({
         >
           <Layout>
             {children}
-            {/* <SignInPage /> */}
-            <UserButton />
           </Layout>
       </body>
     </html>
