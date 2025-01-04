@@ -1,8 +1,9 @@
 /* eslint-disable prefer-const */
+/* eslint-disable no-prototype-builtins */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { type ClassValue, clsx } from "clsx";
 import qs from "qs";
 import { twMerge } from "tailwind-merge";
-
 import { aspectRatioOptions } from "@/constants";
 
 export function cn(...inputs: ClassValue[]) {
@@ -23,24 +24,41 @@ export const handleError = (error: unknown) => {
   }
 };
 
-// PLACEHOLDER LOADER
-const shimmer = (w: number, h: number) => `...`;
+// PLACEHOLDER LOADER - while image is transforming
+const shimmer = (w: number, h: number) => {
+  return `
+    <svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <defs>
+        <linearGradient id="g">
+          <stop stop-color="#7986AC" offset="20%" />
+          <stop stop-color="#68769e" offset="50%" />
+          <stop stop-color="#7986AC" offset="70%" />
+        </linearGradient>
+      </defs>
+      <rect width="${w}" height="${h}" fill="#7986AC" />
+      <rect id="r" width="${w}" height="${h}" fill="url(#g)" />
+      <animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite" />
+    </svg>
+  `;
+};
 
 const toBase64 = (str: string) =>
   typeof window === "undefined"
     ? Buffer.from(str).toString("base64")
     : window.btoa(str);
 
-export const dataUrl = `data:image/svg+xml;base64,${toBase64(
-  shimmer(1000, 1000)
-)}`;
+export const dataUrl = `data:image/svg+xml;base64,${toBase64(shimmer(1000, 1000))}`;
 
 // FORM URL QUERY
 export const formUrlQuery = ({
   searchParams,
   key,
   value,
-}: FormUrlQueryParams) => {
+}: {
+  searchParams: URLSearchParams;
+  key: string;
+  value: string;
+}) => {
   const params = { ...qs.parse(searchParams.toString()), [key]: value };
 
   return `${window.location.pathname}?${qs.stringify(params, {
@@ -52,13 +70,17 @@ export const formUrlQuery = ({
 export function removeKeysFromQuery({
   searchParams,
   keysToRemove,
-}: RemoveUrlQueryParams) {
-  const currentUrl = qs.parse(searchParams);
+}: {
+  searchParams: URLSearchParams;
+  keysToRemove: string[];
+}) {
+  const currentUrl = qs.parse(searchParams.toString()); // Convert URLSearchParams to string
 
   keysToRemove.forEach((key) => {
     delete currentUrl[key];
   });
 
+  // Remove null or undefined values
   Object.keys(currentUrl).forEach(
     (key) => currentUrl[key] == null && delete currentUrl[key]
   );
@@ -66,29 +88,21 @@ export function removeKeysFromQuery({
   return `${window.location.pathname}?${qs.stringify(currentUrl)}`;
 }
 
+
 // DEBOUNCE
-export const debounce = <T extends (...args: any[]) => void>(
-  func: T,
-  delay: number
-): (...args: Parameters<T>) => void => {
+export const debounce = (func: (...args: unknown[]) => void, delay: number) => {
   let timeoutId: NodeJS.Timeout | null;
-  return (...args: Parameters<T>) => {
+  return (...args: unknown[]) => {
     if (timeoutId) clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
+    timeoutId = setTimeout(() => func.apply(null, args), delay);
   };
 };
 
 // GET IMAGE SIZE
 export type AspectRatioKey = keyof typeof aspectRatioOptions;
-export interface ImageProps {
-  aspectRatio?: AspectRatioKey;
-  width?: number;
-  height?: number;
-}
-
 export const getImageSize = (
   type: string,
-  image: ImageProps,
+  image: { aspectRatio?: AspectRatioKey; width?: number; height?: number },
   dimension: "width" | "height"
 ): number => {
   if (type === "fill") {
@@ -140,10 +154,7 @@ export const deepMergeObjects = (
         obj2[key] &&
         typeof obj2[key] === "object"
       ) {
-        output[key] = deepMergeObjects(
-          obj1[key] as Record<string, unknown>,
-          obj2[key] as Record<string, unknown>
-        );
+        output[key] = deepMergeObjects(obj1[key] as Record<string, unknown>, obj2[key] as Record<string, unknown>);
       } else {
         output[key] = obj1[key];
       }
