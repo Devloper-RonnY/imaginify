@@ -2,21 +2,21 @@
 /* eslint-disable no-unused-vars */
 
 // ====== USER PARAMS
-declare type CreateUserParams = {
-    clerkId: string;
-    email: string;
-    username: string;
-    firstName: string;
-    lastName: string;
-    photo: string;
-  };
+const user: CreateUserParams = {
+  clerkId: id,
+  email: email_addresses[0].email_address,
+  username: username!,
+  firstName: first_name ?? "", // Default to an empty string if null
+  lastName: last_name ?? "",  // Default to an empty string if null
+  photo: image_url,
+};
   
   declare type UpdateUserParams = {
-    firstName: string;
-    lastName: string;
-    username: string;
-    photo: string;
-  };
+  firstName: string | null; // Allow null
+  lastName: string | null;  // Allow null
+  username: string;
+  photo: string;
+};
   
   // ====== IMAGE PARAMS
   declare type AddImageParams = {
