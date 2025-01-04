@@ -1,30 +1,39 @@
-import mongoose, {Mongoose} from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 
 const MONGODB_URL = process.env.MONGODB_URL;
 
 interface MongooseConnection {
-    conn: Mongoose | null;
-    promise: Promise<Mongoose> | null;
+  conn: Mongoose | null;
+  promise: Promise<Mongoose> | null;
 }
 
-let cached: MongooseConnection = (global as any).mongoose
+// Use a specific type for global object to avoid "any"
+declare global {
+  // eslint-disable-next-line no-var
+  var mongoose: MongooseConnection | undefined;
+}
 
-if(!cached){
-    cached = (global as any).mongoose = {conn: null,
-    promise: null 
+// Use a fallback for the global object
+let cached: MongooseConnection = global.mongoose || { conn: null, promise: null };
+
+if (!global.mongoose) {
+  global.mongoose = cached;
+}
+
+export const connectToDatabase = async (): Promise<Mongoose> => {
+  if (cached.conn) return cached.conn;
+
+  if (!MONGODB_URL) {
+    throw new Error("MONGODB_URL is not defined");
   }
-}
 
-export const connectToDatabase = async () => {
-    if(cached.conn) return cached.conn;
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URL, {
+      dbName: "Imaginify",
+      bufferCommands: false,
+    });
+  }
 
-    if(!MONGODB_URL) throw new Error(" missing MONDODB_URL is not defined")
-
-    cached.promise = cached.promise || mongoose.connect
-    (MONGODB_URL, {dbName: 'Imaginify' , bufferCommands: false
-    })
-
-    cached.conn = await cached.promise;
-
-    return cached.conn;
-}
+  cached.conn = await cached.promise;
+  return cached.conn;
+};
