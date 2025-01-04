@@ -2,20 +2,22 @@
 /* eslint-disable no-unused-vars */
 
 // ====== USER PARAMS
-const user: CreateUserParams = {
-  clerkId: id,
-  email: email_addresses[0].email_address,
-  username: username!,
-  firstName: first_name ?? "", // Default to an empty string if null
-  lastName: last_name ?? "",  // Default to an empty string if null
-  photo: image_url,
-};
+interface CreateUserParams {
+  clerkId: string;
+  email: string;
+  username: string;
+  firstName: string; // Use empty strings as defaults if necessary
+  lastName: string;  // Same as above
+  photo: string;
+  planId?: number;       // Optional
+  creditBalance?: number; // Optional
+}
   
   declare type UpdateUserParams = {
-  firstName: string | null; // Allow null
-  lastName: string | null;  // Allow null
-  username: string;
-  photo: string;
+    firstName: first_name, // Can be null
+    lastName: last_name,   // Can be null
+    username: username!,
+    photo: image_url,
 };
   
   // ====== IMAGE PARAMS
